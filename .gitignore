@@ -1,0 +1,22 @@
+# Node
+web/node_modules/
+web/.next/
+
+# Python
+ml/venv/
+ml/__pycache__/
+*.pyc
+
+# Dataset
+ml/dataset/raw/
+ml/dataset/training/
+ml/dataset/testing/
+
+# Generated Files
+ml/features/
+ml/models/*.pkl
+ml/models/*.json
+
+# OS
+.DS_Store
+Thumbs.db
