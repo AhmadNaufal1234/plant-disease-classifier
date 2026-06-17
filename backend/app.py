@@ -26,7 +26,7 @@ MODEL_PATH = (
 model = joblib.load(MODEL_PATH)
 
 # ==========================
-# HSV
+# HSV FEATURE
 # ==========================
 def extract_hsv(image):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -37,8 +37,9 @@ def extract_hsv(image):
 
     return [h_mean, s_mean, v_mean]
 
+
 # ==========================
-# GLCM
+# GLCM FEATURE
 # ==========================
 def extract_glcm(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -52,25 +53,10 @@ def extract_glcm(image):
         normed=True
     )
 
-    contrast = graycoprops(
-        glcm,
-        "contrast"
-    )[0, 0]
-
-    correlation = graycoprops(
-        glcm,
-        "correlation"
-    )[0, 0]
-
-    energy = graycoprops(
-        glcm,
-        "energy"
-    )[0, 0]
-
-    homogeneity = graycoprops(
-        glcm,
-        "homogeneity"
-    )[0, 0]
+    contrast = graycoprops(glcm, "contrast")[0, 0]
+    correlation = graycoprops(glcm, "correlation")[0, 0]
+    energy = graycoprops(glcm, "energy")[0, 0]
+    homogeneity = graycoprops(glcm, "homogeneity")[0, 0]
 
     return [
         contrast,
@@ -79,54 +65,94 @@ def extract_glcm(image):
         homogeneity
     ]
 
+
 # ==========================
 # PREDICT
 # ==========================
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    if "image" not in request.files:
+    try:
+
+        if "image" not in request.files:
+            return jsonify({
+                "error": "image not found"
+            }), 400
+
+        file = request.files["image"]
+
+        image_bytes = np.frombuffer(
+            file.read(),
+            np.uint8
+        )
+
+        image = cv2.imdecode(
+            image_bytes,
+            cv2.IMREAD_COLOR
+        )
+
+        if image is None:
+            return jsonify({
+                "error": "invalid image"
+            }), 400
+
+        image = cv2.resize(
+            image,
+            (128, 128)
+        )
+
+        # Extract Feature
+        hsv = extract_hsv(image)
+        glcm = extract_glcm(image)
+
+        features = np.array(
+            [hsv + glcm]
+        )
+
+        # Predict
+        prediction = model.predict(features)[0]
+
+        # Confidence
+        probabilities = model.predict_proba(features)
+
+        confidence = float(
+            np.max(probabilities) * 100
+        )
+
+        # Split label
+        parts = prediction.split("_", 1)
+
+        plant = parts[0]
+
+        disease = (
+            parts[1]
+            if len(parts) > 1
+            else "unknown"
+        )
+
         return jsonify({
-            "error": "image not found"
-        }), 400
+            "plant": plant,
+            "disease": disease,
+            "confidence": round(confidence, 2)
+        })
 
-    file = request.files["image"]
+    except Exception as e:
 
-    image_bytes = np.frombuffer(
-        file.read(),
-        np.uint8
-    )
+        return jsonify({
+            "error": str(e)
+        }), 500
 
-    image = cv2.imdecode(
-        image_bytes,
-        cv2.IMREAD_COLOR
-    )
 
-    image = cv2.resize(
-        image,
-        (128, 128)
-    )
-
-    hsv = extract_hsv(image)
-    glcm = extract_glcm(image)
-
-    features = np.array(
-        [hsv + glcm]
-    )
-
-    prediction = model.predict(
-        features
-    )[0]
-
-    parts = prediction.split("_", 1)
-
-    plant = parts[0]
-    disease = parts[1]
+# ==========================
+# HOME
+# ==========================
+@app.route("/")
+def home():
 
     return jsonify({
-        "plant": plant,
-        "disease": disease
+        "message": "AgroScan AI API Running"
     })
+
 
 # ==========================
 # RUN
@@ -134,5 +160,6 @@ def predict():
 if __name__ == "__main__":
     app.run(
         debug=True,
+        host="0.0.0.0",
         port=5000
     )
