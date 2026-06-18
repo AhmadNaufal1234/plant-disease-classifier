@@ -3,8 +3,10 @@ web/node_modules/
 web/.next/
 
 # Python
+backend/venv/
 ml/venv/
 ml/__pycache__/
+backend/__pycache__/
 *.pyc
 
 # Dataset
@@ -14,8 +16,6 @@ ml/dataset/testing/
 
 # Generated Files
 ml/features/
-ml/models/*.pkl
-ml/models/*.json
 
 # OS
 .DS_Store
