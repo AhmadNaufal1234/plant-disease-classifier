@@ -2,15 +2,25 @@ import pandas as pd
 import joblib
 
 from pathlib import Path
+
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
 
 # ==========================
 # PATH
 # ==========================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-FEATURE_FILE = BASE_DIR / "features" / "train_features.csv"
-MODEL_DIR = BASE_DIR / "models"
+FEATURE_FILE = (
+    BASE_DIR
+    / "features"
+    / "train_features.csv"
+)
+
+MODEL_DIR = (
+    BASE_DIR
+    / "models"
+)
 
 MODEL_DIR.mkdir(exist_ok=True)
 
@@ -23,7 +33,6 @@ print("=" * 50)
 
 df = pd.read_csv(FEATURE_FILE)
 
-# Fitur
 X = df[
     [
         "h_mean",
@@ -36,19 +45,40 @@ X = df[
     ]
 ]
 
-# Label
-y = df["plant"] + "_" + df["label"]
+y = (
+    df["plant"]
+    + "_"
+    + df["label"]
+)
 
-print(f"Jumlah Data : {len(df)}")
-print(f"Jumlah Fitur : {X.shape[1]}")
+print(
+    f"Jumlah Data : {len(df)}"
+)
+
+print(
+    f"Jumlah Fitur : {X.shape[1]}"
+)
+
+# ==========================
+# NORMALISASI
+# ==========================
+print("=" * 50)
+print("NORMALISASI FITUR")
+print("=" * 50)
+
+scaler = StandardScaler()
+
+X_scaled = scaler.fit_transform(X)
 
 # ==========================
 # TRAIN KNN
 # ==========================
-K_VALUE = 5
+K_VALUE = 3
 
 print("=" * 50)
-print(f"MELATIH MODEL KNN (K={K_VALUE})")
+print(
+    f"MELATIH MODEL KNN (K={K_VALUE})"
+)
 print("=" * 50)
 
 model = KNeighborsClassifier(
@@ -56,16 +86,40 @@ model = KNeighborsClassifier(
     metric="euclidean"
 )
 
-model.fit(X, y)
+model.fit(
+    X_scaled,
+    y
+)
 
 # ==========================
 # SIMPAN MODEL
 # ==========================
-model_path = MODEL_DIR / "knn_model.pkl"
+model_path = (
+    MODEL_DIR
+    / "knn_model.pkl"
+)
 
-joblib.dump(model, model_path)
+scaler_path = (
+    MODEL_DIR
+    / "scaler.pkl"
+)
+
+joblib.dump(
+    model,
+    model_path
+)
+
+joblib.dump(
+    scaler,
+    scaler_path
+)
 
 print("=" * 50)
 print("MODEL BERHASIL DISIMPAN")
-print(f"Lokasi : {model_path}")
+print(
+    f"Model  : {model_path}"
+)
+print(
+    f"Scaler : {scaler_path}"
+)
 print("=" * 50)

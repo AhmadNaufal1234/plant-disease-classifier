@@ -24,6 +24,16 @@ MODEL_PATH = (
 )
 
 model = joblib.load(MODEL_PATH)
+SCALER_PATH = (
+    BASE_DIR.parent
+    / "ml"
+    / "models"
+    / "scaler.pkl"
+)
+
+scaler = joblib.load(
+    SCALER_PATH
+)
 
 # ==========================
 # HSV FEATURE
@@ -108,6 +118,10 @@ def predict():
         features = np.array(
             [hsv + glcm]
         )
+
+        features = scaler.transform(
+    features
+)
 
         # Predict
         prediction = model.predict(features)[0]
