@@ -11,6 +11,14 @@ from skimage.feature import graycomatrix, graycoprops
 app = Flask(__name__)
 CORS(app)
 
+import sys
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+sys.path.append(str(PROJECT_ROOT))
+
+from ml.core.evaluation import run_evaluation
+
 # ==========================
 # LOAD MODEL
 # ==========================
@@ -167,7 +175,40 @@ def home():
         "message": "AgroScan AI API Running"
     })
 
+# ==========================
+# EVALUATE MODEL
+# ==========================
+@app.route("/evaluate", methods=["POST"])
+def evaluate():
 
+    try:
+
+        data = request.get_json()
+
+        k = int(data["k"])
+
+        split = data["split"]
+
+        csv_path = (
+            PROJECT_ROOT
+            / "ml"
+            / "features"
+            / "train_features.csv"
+        )
+
+        result = run_evaluation(
+            csv_path=csv_path,
+            k=k,
+            split=split
+        )
+
+        return jsonify(result)
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
 # ==========================
 # RUN
 # ==========================
