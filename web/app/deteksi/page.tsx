@@ -91,7 +91,7 @@ export default function DeteksiPage() {
       const formData = new FormData();
       formData.append("image", selectedFile);
 
-      const response = await fetch("http://127.0.0.1:5000/predict", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/predict`, {
         method: "POST",
         body: formData,
       });
