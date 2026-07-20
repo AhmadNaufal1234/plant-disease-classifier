@@ -98,6 +98,20 @@ export default function DeteksiPage() {
 
       const data = await response.json();
 
+      // Backend menolak gambar yang tidak dikenali (bukan daun / out-of-distribution)
+      if (data.error === "unrecognized") {
+        alert(data.message || "Gambar tidak dikenali sebagai daun tanaman.");
+        setResult(null);
+        return;
+      }
+
+      // Error lain dari backend (misal gambar invalid, dsb)
+      if (data.error) {
+        alert(data.error);
+        setResult(null);
+        return;
+      }
+
       setResult(data);
 
       // SIMPAN KE RIWAYAT
@@ -166,7 +180,6 @@ export default function DeteksiPage() {
             </div>
           )}
 
-          {/* Input tersembunyi — terpisah untuk kamera & galeri */}
           <input
             ref={cameraInputRef}
             type="file"
@@ -231,9 +244,8 @@ export default function DeteksiPage() {
             <h2 className="font-bold text-xl">Hasil Analisis</h2>
           </div>
 
-          {result ? (
+          {result && result.plant ? (
             <div className="space-y-5">
-              {/* Badge Tanaman */}
               <div>
                 <span
                   className="
@@ -252,14 +264,12 @@ export default function DeteksiPage() {
                 </span>
               </div>
 
-              {/* Nama Penyakit */}
               <div>
                 <h3 className="text-2xl font-bold leading-tight">
                   {info?.name || result.disease}
                 </h3>
               </div>
 
-              {/* Confidence */}
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm text-muted-foreground">
@@ -279,7 +289,6 @@ export default function DeteksiPage() {
                 </div>
               </div>
 
-              {/* Solusi */}
               {info && (
                 <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
                   <h4 className="font-semibold text-green-700 mb-3">
