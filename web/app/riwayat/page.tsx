@@ -26,7 +26,11 @@ export default function RiwayatPage() {
     const data = JSON.parse(
       localStorage.getItem("detectionHistory") || "[]"
     );
-    setHistory(data);
+    // Filter data lama yang tidak lengkap/corrupt (misal tanpa field plant)
+    const validData = data.filter(
+      (item: any) => item && item.plant && item.disease
+    );
+    setHistory(validData);
   };
 
   const saveHistory = (data: DetectionItem[]) => {
@@ -177,8 +181,9 @@ export default function RiwayatPage() {
                       text-green-700
                     "
                   >
-                    {item.plant.charAt(0).toUpperCase() +
-                      item.plant.slice(1)}
+                    {item.plant
+                      ? item.plant.charAt(0).toUpperCase() + item.plant.slice(1)
+                      : "Tidak diketahui"}
                   </span>
                 </div>
 
