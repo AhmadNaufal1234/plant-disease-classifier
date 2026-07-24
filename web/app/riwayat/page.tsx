@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, X, History, Leaf } from "lucide-react";
+import { Trash2, X, History, Leaf, CheckCircle2, XCircle } from "lucide-react";
 
 interface DetectionItem {
   image?: string;
@@ -11,16 +11,27 @@ interface DetectionItem {
   date: string;
 }
 
+interface AlertState {
+  title: string;
+  message: string;
+  type: "success" | "error";
+}
+
 export default function RiwayatPage() {
   const [history, setHistory] = useState<DetectionItem[]>([]);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [confirmDeleteIndex, setConfirmDeleteIndex] = useState<number | null>(
     null
   );
+  const [alertInfo, setAlertInfo] = useState<AlertState | null>(null);
 
   useEffect(() => {
     loadHistory();
   }, []);
+
+  const showAlert = (title: string, message: string, type: "success" | "error") => {
+    setAlertInfo({ title, message, type });
+  };
 
   const loadHistory = () => {
     const data = JSON.parse(
@@ -39,15 +50,29 @@ export default function RiwayatPage() {
   };
 
   const handleDeleteOne = (index: number) => {
-    const updated = history.filter((_, i) => i !== index);
-    saveHistory(updated);
-    setConfirmDeleteIndex(null);
+    try {
+      const updated = history.filter((_, i) => i !== index);
+      saveHistory(updated);
+      setConfirmDeleteIndex(null);
+      showAlert("Berhasil Dihapus", "Riwayat deteksi telah dihapus secara permanen.", "success");
+    } catch (error) {
+      console.error(error);
+      setConfirmDeleteIndex(null);
+      showAlert("Gagal Menghapus", "Terjadi kesalahan saat menghapus riwayat. Coba lagi.", "error");
+    }
   };
 
   const handleDeleteAll = () => {
-    localStorage.removeItem("detectionHistory");
-    setHistory([]);
-    setConfirmDeleteAll(false);
+    try {
+      localStorage.removeItem("detectionHistory");
+      setHistory([]);
+      setConfirmDeleteAll(false);
+      showAlert("Berhasil Dihapus", "Seluruh riwayat deteksi telah dihapus secara permanen.", "success");
+    } catch (error) {
+      console.error(error);
+      setConfirmDeleteAll(false);
+      showAlert("Gagal Menghapus", "Terjadi kesalahan saat menghapus semua riwayat. Coba lagi.", "error");
+    }
   };
 
   const diseaseNames: Record<string, string> = {
@@ -361,6 +386,57 @@ export default function RiwayatPage() {
                 Hapus Semua
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup hasil hapus (berhasil / gagal) */}
+      {alertInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => setAlertInfo(null)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  alertInfo.type === "success" ? "bg-green-50" : "bg-red-50"
+                }`}
+              >
+                {alertInfo.type === "success" ? (
+                  <CheckCircle2 size={26} className="text-green-600" />
+                ) : (
+                  <XCircle size={26} className="text-red-500" />
+                )}
+              </div>
+
+              <button
+                onClick={() => setAlertInfo(null)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <h3 className="text-lg font-bold mb-1.5">{alertInfo.title}</h3>
+
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              {alertInfo.message}
+            </p>
+
+            <button
+              onClick={() => setAlertInfo(null)}
+              className={`w-full py-3 rounded-xl text-white font-medium transition active:scale-[0.99] ${
+                alertInfo.type === "success"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
+            >
+              Mengerti
+            </button>
           </div>
         </div>
       )}

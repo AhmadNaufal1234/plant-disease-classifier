@@ -7,7 +7,6 @@ import {
   House,
   Camera,
   History,
-  User,
 } from "lucide-react";
 
 export default function BottomNavigation() {
@@ -29,11 +28,6 @@ export default function BottomNavigation() {
       href: "/riwayat",
       icon: History,
     },
-    {
-      label: "Profil",
-      href: "/profil",
-      icon: User,
-    },
   ];
 
   return (
@@ -43,7 +37,7 @@ export default function BottomNavigation() {
 
         <div className="m-3 rounded-2xl border bg-background/95 backdrop-blur">
 
-          <div className="grid grid-cols-4">
+          <div className="grid grid-cols-3">
 
             {menus.map((menu) => {
               const Icon = menu.icon;

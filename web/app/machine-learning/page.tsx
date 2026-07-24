@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { XCircle, X } from "lucide-react";
 
 interface EvaluationData {
   k_value: number;
@@ -29,6 +30,11 @@ interface DatasetData {
   testing_preview: string[];
 }
 
+interface AlertState {
+  title: string;
+  message: string;
+}
+
 export default function MachineLearningPage() {
   const [evaluation, setEvaluation] = useState<EvaluationData | null>(null);
   const [dataset, setDataset] = useState<DatasetData | null>(null);
@@ -37,6 +43,11 @@ export default function MachineLearningPage() {
   const [split, setSplit] = useState("80:20");
   const [loading, setLoading] = useState(false);
   const [datasetRows, setDatasetRows] = useState<any[]>([]);
+  const [alertInfo, setAlertInfo] = useState<AlertState | null>(null);
+
+  const showAlert = (title: string, message: string) => {
+    setAlertInfo({ title, message });
+  };
 
   useEffect(() => {
     fetch("/api/evaluation")
@@ -64,7 +75,7 @@ export default function MachineLearningPage() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://127.0.0.1:5000/evaluate", {
+      const response = await fetch("https://discerning-presence-production-3c61.up.railway.app/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ k: kValue, split: split }),
@@ -78,7 +89,7 @@ export default function MachineLearningPage() {
       setEvaluation(result);
     } catch (error) {
       console.error(error);
-      alert("Gagal terhubung ke Flask API");
+      showAlert("Gagal Terhubung", "Gagal terhubung ke Flask API. Periksa koneksi internet kamu dan coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -315,6 +326,45 @@ export default function MachineLearningPage() {
           ))}
         </div>
       </div>
+
+      {/* Popup Alert Custom (hanya muncul jika gagal) */}
+      {alertInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => setAlertInfo(null)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                <XCircle size={26} className="text-red-500" />
+              </div>
+
+              <button
+                onClick={() => setAlertInfo(null)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <h3 className="text-lg font-bold mb-1.5">{alertInfo.title}</h3>
+
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              {alertInfo.message}
+            </p>
+
+            <button
+              onClick={() => setAlertInfo(null)}
+              className="w-full py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 active:scale-[0.99] transition"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

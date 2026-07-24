@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, ImageIcon, Leaf, AlertCircle, Loader2 } from "lucide-react";
+import { Camera, ImageIcon, Leaf, AlertCircle, Loader2, XCircle, X } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,14 +53,24 @@ const diseaseInfo: Record<string, any> = {
   },
 };
 
+interface AlertState {
+  title: string;
+  message: string;
+}
+
 export default function DeteksiPage() {
   const [image, setImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [alertInfo, setAlertInfo] = useState<AlertState | null>(null);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const showAlert = (title: string, message: string) => {
+    setAlertInfo({ title, message });
+  };
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,7 +91,7 @@ export default function DeteksiPage() {
 
   const handlePredict = async () => {
     if (!selectedFile) {
-      alert("Pilih gambar terlebih dahulu");
+      showAlert("Gambar Belum Dipilih", "Pilih gambar terlebih dahulu sebelum melakukan deteksi.");
       return;
     }
 
@@ -100,14 +110,17 @@ export default function DeteksiPage() {
 
       // Backend menolak gambar yang tidak dikenali (bukan daun / out-of-distribution)
       if (data.error === "unrecognized") {
-        alert(data.message || "Gambar tidak dikenali sebagai daun tanaman.");
+        showAlert(
+          "Gambar Tidak Dikenali",
+          data.message || "Gambar tidak dikenali sebagai daun tanaman. Pastikan foto menampilkan daun dengan jelas."
+        );
         setResult(null);
         return;
       }
 
       // Error lain dari backend (misal gambar invalid, dsb)
       if (data.error) {
-        alert(data.error);
+        showAlert("Terjadi Kesalahan", data.error);
         setResult(null);
         return;
       }
@@ -130,7 +143,7 @@ export default function DeteksiPage() {
       localStorage.setItem("detectionHistory", JSON.stringify(history));
     } catch (error) {
       console.error(error);
-      alert("Gagal melakukan prediksi");
+      showAlert("Gagal Terhubung", "Gagal melakukan prediksi. Periksa koneksi internet kamu dan coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -318,6 +331,45 @@ export default function DeteksiPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Popup Alert Custom */}
+      {alertInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          onClick={() => setAlertInfo(null)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                <XCircle size={26} className="text-red-500" />
+              </div>
+
+              <button
+                onClick={() => setAlertInfo(null)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <h3 className="text-lg font-bold mb-1.5">{alertInfo.title}</h3>
+
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              {alertInfo.message}
+            </p>
+
+            <Button
+              onClick={() => setAlertInfo(null)}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              Mengerti
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
