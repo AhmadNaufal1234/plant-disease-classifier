@@ -201,85 +201,88 @@ export default function InformasiPage() {
   }, [query]);
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-32">
+    <div className="max-w-md lg:max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 pb-32">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 lg:mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2.5 rounded-2xl bg-green-100">
             <BookOpen size={22} className="text-green-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold leading-tight">
+            <h1 className="text-2xl lg:text-3xl font-bold leading-tight">
               Informasi Penyakit
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm lg:text-base text-muted-foreground">
               {diseases.length} kondisi yang dapat dideteksi
             </p>
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-sm lg:text-base text-muted-foreground mt-2 lg:max-w-2xl">
           Pelajari gejala, pencegahan, dan solusi penyakit tanaman yang dapat
           dideteksi oleh AgroScan AI.
         </p>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-5">
-        <Search
-          size={18}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-        />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cari penyakit atau gejala..."
-          className="
-            w-full
-            pl-10
-            pr-4
-            py-3
-            rounded-2xl
-            border
-            bg-white
-            text-sm
-            outline-none
-            focus:ring-2
-            focus:ring-green-200
-            focus:border-green-300
-            transition
-          "
-        />
-      </div>
-
-      {/* Quick legend */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {(Object.keys(severityStyles) as Severity[]).map((level) => (
-          <span
-            key={level}
-            className={`
-              inline-flex
-              items-center
-              px-3
-              py-1
-              rounded-full
-              text-xs
-              font-medium
+      {/* Search & legend berdampingan di laptop */}
+      <div className="lg:flex lg:items-center lg:gap-4 mb-6">
+        {/* Search */}
+        <div className="relative mb-5 lg:mb-0 lg:flex-1">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Cari penyakit atau gejala..."
+            className="
+              w-full
+              pl-10
+              pr-4
+              py-3
+              rounded-2xl
               border
-              ${severityStyles[level].bg}
-              ${severityStyles[level].text}
-              ${severityStyles[level].border}
-            `}
-          >
-            {level}
-          </span>
-        ))}
+              bg-white
+              text-sm
+              outline-none
+              focus:ring-2
+              focus:ring-green-200
+              focus:border-green-300
+              transition
+            "
+          />
+        </div>
+
+        {/* Quick legend */}
+        <div className="flex flex-wrap gap-2 lg:shrink-0">
+          {(Object.keys(severityStyles) as Severity[]).map((level) => (
+            <span
+              key={level}
+              className={`
+                inline-flex
+                items-center
+                px-3
+                py-1
+                rounded-full
+                text-xs
+                font-medium
+                border
+                ${severityStyles[level].bg}
+                ${severityStyles[level].text}
+                ${severityStyles[level].border}
+              `}
+            >
+              {level}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* List */}
       {filteredDiseases.length === 0 ? (
-        <div className="border rounded-2xl p-10 text-center bg-white flex flex-col items-center gap-3">
+        <div className="border rounded-2xl p-10 lg:p-16 text-center bg-white flex flex-col items-center gap-3">
           <div className="p-4 rounded-full bg-green-50">
             <Sparkles size={26} className="text-green-500" />
           </div>
@@ -293,7 +296,7 @@ export default function InformasiPage() {
           <Accordion type="single" collapsible className="w-full">
             {filteredDiseases.map((disease, index) => (
               <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="px-4">
+                <AccordionTrigger className="px-4 lg:px-6">
                   <div className="flex items-center gap-3 w-full">
                     <div
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${disease.accent.iconBg}`}
@@ -328,9 +331,9 @@ export default function InformasiPage() {
                   </div>
                 </AccordionTrigger>
 
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-4">
-                    <div>
+                <AccordionContent className="px-4 lg:px-6 pb-4">
+                  <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+                    <div className="lg:col-span-2">
                       <h3 className="font-semibold mb-2">Deskripsi</h3>
                       <p className="text-sm text-muted-foreground">
                         {disease.description}
@@ -338,7 +341,7 @@ export default function InformasiPage() {
                     </div>
 
                     <div
-                      className={`rounded-2xl p-4 border ${disease.accent.bg} ${disease.accent.border}`}
+                      className={`rounded-2xl p-4 border lg:col-span-2 ${disease.accent.bg} ${disease.accent.border}`}
                     >
                       <h3
                         className={`font-semibold mb-2 ${disease.accent.text}`}

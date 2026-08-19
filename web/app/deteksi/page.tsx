@@ -153,184 +153,187 @@ export default function DeteksiPage() {
     result && diseaseInfo[result.disease] ? diseaseInfo[result.disease] : null;
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-32">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">
+    <div className="max-w-md lg:max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-32">
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">
           Deteksi Penyakit
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm lg:text-base text-muted-foreground mt-1">
           Foto atau unggah gambar daun untuk dianalisis
         </p>
       </div>
 
-      {/* Upload */}
-      <Card className="mb-4 shadow-sm border-0 rounded-3xl">
-        <CardContent className="p-5">
-          {image ? (
-            <div className="relative">
-              <img
-                src={image}
-                alt="Preview"
-                className="rounded-2xl w-full h-64 object-cover"
-              />
-              <span className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur">
-                Preview
-              </span>
-            </div>
-          ) : (
-            <div className="h-64 border-2 border-dashed rounded-2xl flex items-center justify-center">
-              <div className="text-center px-6">
-                <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-                  <Leaf size={26} className="text-green-600" />
-                </div>
-
-                <p className="font-medium">Belum ada gambar</p>
-
-                <p className="text-sm text-muted-foreground mt-1">
-                  Ambil foto langsung atau pilih dari galeri
-                </p>
-              </div>
-            </div>
-          )}
-
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleImage}
-            className="hidden"
-          />
-
-          <input
-            ref={galleryInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImage}
-            className="hidden"
-          />
-
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => cameraInputRef.current?.click()}
-            >
-              <Camera className="mr-2 h-4 w-4" />
-              Ambil Foto
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => galleryInputRef.current?.click()}
-            >
-              <ImageIcon className="mr-2 h-4 w-4" />
-              Pilih Galeri
-            </Button>
-          </div>
-
-          <Button
-            onClick={handlePredict}
-            disabled={loading || !selectedFile}
-            className="w-full mt-3 bg-green-600 hover:bg-green-700 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menganalisis...
-              </>
-            ) : (
-              "Deteksi Penyakit"
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Hasil Prediksi */}
-      <Card className="shadow-sm border-0 rounded-3xl">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-5">
-            <Leaf className="text-green-600" />
-            <h2 className="font-bold text-xl">Hasil Analisis</h2>
-          </div>
-
-          {result && result.plant ? (
-            <div className="space-y-5">
-              <div>
-                <span
-                  className="
-                    inline-flex
-                    px-3
-                    py-1
-                    rounded-full
-                    text-xs
-                    font-medium
-                    bg-green-100
-                    text-green-700
-                  "
-                >
-                  {result.plant.charAt(0).toUpperCase() +
-                    result.plant.slice(1)}
+      {/* Layout utama: 1 kolom di mobile, 2 kolom (Upload + Hasil) berdampingan di laptop */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+        {/* Upload */}
+        <Card className="mb-4 lg:mb-0 shadow-sm border-0 rounded-3xl lg:sticky lg:top-6">
+          <CardContent className="p-5 lg:p-6">
+            {image ? (
+              <div className="relative">
+                <img
+                  src={image}
+                  alt="Preview"
+                  className="rounded-2xl w-full h-64 lg:h-80 object-cover"
+                />
+                <span className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur">
+                  Preview
                 </span>
               </div>
+            ) : (
+              <div className="h-64 lg:h-80 border-2 border-dashed rounded-2xl flex items-center justify-center">
+                <div className="text-center px-6">
+                  <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
+                    <Leaf size={26} className="text-green-600" />
+                  </div>
 
-              <div>
-                <h3 className="text-2xl font-bold leading-tight">
-                  {info?.name || result.disease}
-                </h3>
-              </div>
+                  <p className="font-medium">Belum ada gambar</p>
 
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">
-                    Tingkat Kepercayaan
-                  </span>
-
-                  <span className="font-bold text-green-600">
-                    {result.confidence}%
-                  </span>
-                </div>
-
-                <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 transition-all duration-700 ease-out"
-                    style={{ width: `${result.confidence}%` }}
-                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Ambil foto langsung atau pilih dari galeri
+                  </p>
                 </div>
               </div>
+            )}
 
-              {info && (
-                <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
-                  <h4 className="font-semibold text-green-700 mb-3">
-                    Rekomendasi Penanganan
-                  </h4>
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImage}
+              className="hidden"
+            />
 
-                  <ul className="list-disc ml-5 space-y-2 text-sm">
-                    {info.solution.map((item: string, index: number) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImage}
+              className="hidden"
+            />
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                Ambil Foto
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <ImageIcon className="mr-2 h-4 w-4" />
+                Pilih Galeri
+              </Button>
+            </div>
+
+            <Button
+              onClick={handlePredict}
+              disabled={loading || !selectedFile}
+              className="w-full mt-3 bg-green-600 hover:bg-green-700 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Menganalisis...
+                </>
+              ) : (
+                "Deteksi Penyakit"
               )}
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <AlertCircle size={42} className="mx-auto mb-3 text-gray-400" />
+            </Button>
+          </CardContent>
+        </Card>
 
-              <p className="font-medium text-gray-500">
-                Belum ada hasil analisis
-              </p>
-
-              <p className="text-sm text-gray-400 mt-1">
-                Upload gambar daun terlebih dahulu
-              </p>
+        {/* Hasil Prediksi */}
+        <Card className="shadow-sm border-0 rounded-3xl">
+          <CardContent className="p-5 lg:p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <Leaf className="text-green-600" />
+              <h2 className="font-bold text-xl">Hasil Analisis</h2>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {result && result.plant ? (
+              <div className="space-y-5">
+                <div>
+                  <span
+                    className="
+                      inline-flex
+                      px-3
+                      py-1
+                      rounded-full
+                      text-xs
+                      font-medium
+                      bg-green-100
+                      text-green-700
+                    "
+                  >
+                    {result.plant.charAt(0).toUpperCase() +
+                      result.plant.slice(1)}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-2xl lg:text-3xl font-bold leading-tight">
+                    {info?.name || result.disease}
+                  </h3>
+                </div>
+
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">
+                      Tingkat Kepercayaan
+                    </span>
+
+                    <span className="font-bold text-green-600">
+                      {result.confidence}%
+                    </span>
+                  </div>
+
+                  <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 transition-all duration-700 ease-out"
+                      style={{ width: `${result.confidence}%` }}
+                    />
+                  </div>
+                </div>
+
+                {info && (
+                  <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
+                    <h4 className="font-semibold text-green-700 mb-3">
+                      Rekomendasi Penanganan
+                    </h4>
+
+                    <ul className="list-disc ml-5 space-y-2 text-sm">
+                      {info.solution.map((item: string, index: number) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-10 lg:py-24 lg:flex lg:flex-col lg:items-center lg:justify-center lg:h-full">
+                <AlertCircle size={42} className="mx-auto mb-3 text-gray-400" />
+
+                <p className="font-medium text-gray-500">
+                  Belum ada hasil analisis
+                </p>
+
+                <p className="text-sm text-gray-400 mt-1">
+                  Upload gambar daun terlebih dahulu
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Popup Alert Custom */}
       {alertInfo && (

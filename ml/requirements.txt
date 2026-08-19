@@ -16,3 +16,5 @@ six==1.17.0
 threadpoolctl==3.6.0
 tifffile==2026.6.1
 tzdata==2026.2
+flask-bcrypt
+pyjwt

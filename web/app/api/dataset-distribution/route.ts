@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
 
   const filePath = path.join(
@@ -14,17 +16,21 @@ export async function GET() {
 
   const csv = fs.readFileSync(filePath, "utf8");
 
-  const lines = csv.trim().split("\n").slice(1);
+  const lines = csv
+    .trim()
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+    .slice(1);
 
   const count: Record<string, number> = {};
 
   lines.forEach((line) => {
 
-    const cols = line.split(",");
+    const cols = line.split(",").map((c) => c.trim());
 
-    const plant = cols[7];
-
-    const disease = cols[8];
+    const plant = cols[19];
+    const disease = cols[20];
 
     const key = `${plant} - ${disease}`;
 

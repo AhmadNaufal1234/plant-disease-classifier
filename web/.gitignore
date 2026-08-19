@@ -50,6 +50,8 @@ __pycache__/
 venv/
 backend/venv/
 ml/venv/
+ml/scripts/venv/
+**/venv/
 
 # Uploads
 ml/uploads/
@@ -58,4 +60,4 @@ ml/uploads/
 .pytest_cache/
 
 # Dataset (opsional, jika tidak ingin upload dataset ke GitHub)
-# ml/dataset/
+# ml/dataset/ udah ada git ignore

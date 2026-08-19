@@ -84,16 +84,16 @@ export default function RiwayatPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-32">
+    <div className="max-w-md lg:max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-32">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 lg:mb-8">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-2xl bg-green-100">
             <History size={22} className="text-green-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold leading-tight">Riwayat</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl lg:text-3xl font-bold leading-tight">Riwayat</h1>
+            <p className="text-sm lg:text-base text-muted-foreground">
               {history.length > 0
                 ? `${history.length} hasil deteksi`
                 : "Hasil deteksi yang telah dilakukan"}
@@ -127,6 +127,7 @@ export default function RiwayatPage() {
             border
             rounded-2xl
             p-10
+            lg:p-16
             text-center
             bg-white
             flex
@@ -144,7 +145,7 @@ export default function RiwayatPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-5">
           {history.map((item, index) => (
             <div
               key={index}
@@ -157,6 +158,8 @@ export default function RiwayatPage() {
                 hover:shadow-md
                 transition-shadow
                 relative
+                flex
+                flex-col
               "
             >
               {/* Per-item delete button */}
@@ -191,7 +194,7 @@ export default function RiwayatPage() {
                 />
               )}
 
-              <div className="p-5">
+              <div className="p-5 flex-1 flex flex-col">
                 {/* Badge */}
                 <div className="mb-3">
                   <span
@@ -236,7 +239,7 @@ export default function RiwayatPage() {
                 </div>
 
                 {/* Tanggal */}
-                <p className="text-xs text-muted-foreground">{item.date}</p>
+                <p className="text-xs text-muted-foreground mt-auto">{item.date}</p>
               </div>
             </div>
           ))}
