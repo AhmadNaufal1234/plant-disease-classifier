@@ -31,6 +31,24 @@ interface AlertState {
 
 const ROWS_PER_PAGE = 10;
 
+// Peta nama kelas mentah (dari dataset/model) ke nama yang mudah dipahami.
+// Sama seperti yang dipakai di halaman Riwayat & Deteksi agar konsisten di seluruh aplikasi.
+const diseaseNames: Record<string, string> = {
+  bacterial_spot: "Bercak Bakteri",
+  early_blight: "Busuk Daun Awal",
+  late_blight: "Busuk Daun Lanjut",
+  leaf_mold: "Jamur Daun",
+  healthy: "Tanaman Sehat",
+};
+
+const toFriendlyName = (rawName: string) => {
+  if (diseaseNames[rawName]) return diseaseNames[rawName];
+  // fallback: rapikan nama mentah kalau key tidak dikenali (misal ada kelas baru)
+  return rawName
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 export default function MachineLearningPage() {
   const router = useRouter();
 
@@ -166,6 +184,22 @@ export default function MachineLearningPage() {
   const currentDistPage = Math.min(distPage, totalDistPages);
   const distStartIdx = (currentDistPage - 1) * ROWS_PER_PAGE;
   const pagedDistribution = distribution.slice(distStartIdx, distStartIdx + ROWS_PER_PAGE);
+
+  // Fallback aman: coba turunkan nama kelas confusion matrix dari data distribusi
+  // (diurutkan alfabetis, sesuai default umum scikit-learn/PyTorch). Kalau jumlah
+  // kelasnya tidak cocok dengan confusion matrix, kembali pakai label generik K1, K2, dst
+  // supaya tidak menampilkan informasi yang berpotensi salah.
+  const sortedRawClassNames = [...distribution]
+    .map((d) => d.name)
+    .sort((a, b) => a.localeCompare(b));
+
+  const confusionClassLabels =
+    sortedRawClassNames.length === evaluation.confusion_matrix.length
+      ? sortedRawClassNames.map((name) => toFriendlyName(name))
+      : null;
+
+  const getConfusionLabel = (index: number) =>
+    confusionClassLabels ? confusionClassLabels[index] : `K${index + 1}`;
 
   return (
     <div className="max-w-md lg:max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pb-32">
@@ -313,6 +347,11 @@ export default function MachineLearningPage() {
             <h2 className="text-lg font-bold mb-1.5">Confusion Matrix</h2>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
               Nilai diagonal (hijau) menunjukkan prediksi yang tepat
+              {!confusionClassLabels && (
+                <span className="block text-[11px] text-amber-600 mt-1">
+                  Nama kelas belum bisa dipastikan otomatis, masih memakai label K1, K2, dst.
+                </span>
+              )}
             </p>
 
             <div className="overflow-x-auto">
@@ -321,8 +360,11 @@ export default function MachineLearningPage() {
                   <tr>
                     <th className="p-2"></th>
                     {evaluation.confusion_matrix.map((_, j) => (
-                      <th key={j} className="p-2 text-xs text-muted-foreground font-medium">
-                        K{j + 1}
+                      <th
+                        key={j}
+                        className="p-2 text-xs text-muted-foreground font-medium whitespace-nowrap"
+                      >
+                        {getConfusionLabel(j)}
                       </th>
                     ))}
                   </tr>
@@ -331,7 +373,7 @@ export default function MachineLearningPage() {
                   {evaluation.confusion_matrix.map((row, i) => (
                     <tr key={i}>
                       <td className="p-2 text-xs text-muted-foreground font-medium whitespace-nowrap">
-                        K{i + 1}
+                        {getConfusionLabel(i)}
                       </td>
                       {row.map((value, j) => {
                         const diagonal = i === j;
@@ -359,9 +401,14 @@ export default function MachineLearningPage() {
 
       {/* Distribusi Dataset per Kelas — full width, tabel dengan pagination client-side */}
       <div className="border rounded-3xl p-5 lg:p-6 mt-4 lg:mt-6 mb-16">
-        <h2 className="text-lg font-bold mb-1.5">Distribusi Dataset</h2>
+        <div className="flex items-start justify-between gap-3 mb-1.5 flex-wrap">
+          <h2 className="text-lg font-bold">Distribusi Dataset</h2>
+          <span className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium whitespace-nowrap">
+            Split saat ini: {split}
+          </span>
+        </div>
         <p className="text-sm text-muted-foreground mb-5">
-          Jumlah data pada tiap kelas penyakit
+          Jumlah data pada tiap kelas penyakit, dibagi menjadi training dan testing sesuai pengaturan split ({splitTrain}% training / {splitTest}% testing)
         </p>
 
         {distribution.length === 0 ? (
@@ -376,9 +423,15 @@ export default function MachineLearningPage() {
                       Kelas
                     </th>
                     <th className="text-right py-2.5 px-3 font-medium text-muted-foreground">
-                      Jumlah Data
+                      Total
                     </th>
-                    <th className="text-left py-2.5 px-3 font-medium text-muted-foreground w-1/2">
+                    <th className="text-right py-2.5 px-3 font-medium text-muted-foreground">
+                      Training
+                    </th>
+                    <th className="text-right py-2.5 px-3 font-medium text-muted-foreground">
+                      Testing
+                    </th>
+                    <th className="text-left py-2.5 px-3 font-medium text-muted-foreground w-1/3">
                       Proporsi
                     </th>
                   </tr>
@@ -386,18 +439,40 @@ export default function MachineLearningPage() {
                 <tbody>
                   {pagedDistribution.map((item, i) => {
                     const percentage = maxTotal > 0 ? (item.total / maxTotal) * 100 : 0;
+                    const classTraining = Math.round((item.total * splitTrain) / 100);
+                    const classTesting = item.total - classTraining;
 
                     return (
                       <tr key={distStartIdx + i} className="border-b last:border-0">
-                        <td className="py-3 px-3 font-medium">{item.name}</td>
-                        <td className="py-3 px-3 text-right font-semibold text-green-600">
+                        <td className="py-3 px-3 font-medium whitespace-nowrap">
+                          {toFriendlyName(item.name)}
+                        </td>
+                        <td className="py-3 px-3 text-right font-semibold text-gray-700">
                           {item.total}
                         </td>
+                        <td className="py-3 px-3 text-right font-semibold text-blue-600">
+                          {classTraining}
+                        </td>
+                        <td className="py-3 px-3 text-right font-semibold text-orange-600">
+                          {classTesting}
+                        </td>
                         <td className="py-3 px-3">
-                          <div className="w-full bg-gray-100 rounded-full h-2.5">
+                          <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden flex">
                             <div
-                              className="bg-green-600 h-2.5 rounded-full transition-all"
-                              style={{ width: `${percentage}%` }}
+                              className="bg-blue-500 h-2.5"
+                              style={{
+                                width: `${
+                                  item.total > 0 ? (classTraining / item.total) * percentage : 0
+                                }%`,
+                              }}
+                            />
+                            <div
+                              className="bg-orange-400 h-2.5"
+                              style={{
+                                width: `${
+                                  item.total > 0 ? (classTesting / item.total) * percentage : 0
+                                }%`,
+                              }}
                             />
                           </div>
                         </td>
@@ -406,6 +481,18 @@ export default function MachineLearningPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Legend warna training/testing */}
+            <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                Training
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block" />
+                Testing
+              </div>
             </div>
 
             {/* Pagination */}
